@@ -1,0 +1,21 @@
+h1. yology
+
+"Yology":http://yology.org/ is an open-source web app for online
+genealogy, allowing you to compile, publish, and collaborate via the
+internet.
+
+This is not a new concept, just another attempt at an old problem, or
+several problems.
+
+
+
+h1. Overview
+
+Just getting started, so there's not much to see here...  I'm planning
+to drive development of this app to re-implement the site
+"sladegenealogy.org":http://sladegenealogy.org/, which represents my
+parents' lines.
+
+Additional news on development of this project will be available on
+the "yology blog":http://blog.yology.org/
+

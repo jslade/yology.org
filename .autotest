@@ -1,0 +1,10 @@
+# -*-ruby-*-
+
+Autotest.add_hook :initialize do |at|
+  puts "AUTOTEST :initialize"
+  at.add_mapping %r{model/person/} do |_,n|
+    files_matching %{^test/unit/person_test.rb}
+  end
+  
+end
+        
