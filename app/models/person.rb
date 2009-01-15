@@ -9,9 +9,11 @@ class Person < ActiveRecord::Base
   validates_presence_of :tree
   
   require_dependency 'person/children'
+  require_dependency 'person/gender'
   require_dependency 'person/name'
+  require_dependency 'person/spouses'
 
-  
+
   protected
 
 

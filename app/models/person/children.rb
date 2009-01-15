@@ -3,7 +3,9 @@ class Person < ActiveRecord::Base
   
   def is_child? child
     return false if child.nil?
-    rel = find_relation(:person1_id => child.id, :person2_id => self.id)
+    rtype = Relation.rtype_for_parent(self)
+    rel = find_relation(:person1_id => child.id, :person2_id => self.id,
+                        :rtype => rtype)
     !rel.nil?
   end
   
@@ -16,8 +18,9 @@ class Person < ActiveRecord::Base
     @children = nil
     
     
-    # todo: Add BIRTH event
-    
+    # todo: Add BIRTH event? or leave that to some higher-level operation?
+    # answer: leave it to be handled at higher level (Tree?)
+
     self
   end
   
