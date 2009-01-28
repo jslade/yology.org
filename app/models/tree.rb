@@ -5,4 +5,7 @@ class Tree < ActiveRecord::Base
   has_many :events, :dependent => :destroy
   has_many :places, :dependent => :destroy
   has_many :sources, :dependent => :destroy
+
+  require_dependency 'tree/import'
+
 end
