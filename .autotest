@@ -1,10 +1,94 @@
 # -*-ruby-*-
 
-Autotest.add_hook :initialize do |at|
+Autotest.add_hook :initialize do |autotest|
   puts "AUTOTEST :initialize"
-  at.add_mapping %r{model/person/} do |_,n|
-    files_matching %{^test/unit/person_test.rb}
+  autotest.clear_exceptions
+  autotest.clear_mappings
+  
+  autotest.add_exception %r%^\./(?:doc|log|public|script|tmp|vendor)%
+  %w{.svn .hg .git}.each {|exception| autotest.add_exception(exception)}
+  
+  helper = AutotestUnitRecord.new(autotest, ENV)
+  helper.setup
+end
+ 
+
+# Leveraged from http://github.com/relevance/jumpstart/blob/master/.autotest
+class AutotestUnitRecord
+  attr_reader :autotest
+  
+  def initialize(autotest, environment)
+    @autotest = autotest
+  end
+  
+  def any_matching_tests(class_file)
+    #puts "any_matching_tests of #{class_file}"
+    match = autotest.files_matching %r%^test/.*/?(models|controllers|helpers)?/?#{class_file}s?(_view|_helper|_controller)?_test\.rb$%
+
+    parts = class_file.split(%r{/})
+    if parts.size > 1
+      (0..parts.size-1).each do |n|
+        match << any_matching_tests(parts[0..n].join('_'))
+      end
+    end
+    
+    match.flatten.uniq
+  end
+ 
+  def all_tests autotest
+    autotest.files_matching %r%^test/.+/.*_test\.rb$%
+  end
+ 
+  def setup
+    autotest.add_mapping(%r%^test/fixtures/(.*)s.yml%) { |_, m|
+      any_matching_tests(m[1])
+    }
+ 
+    autotest.add_mapping(/^lib\/.*\.rb$/) do |filename, _|
+      impl = File.basename(filename, '.rb')
+      any_matching_tests(impl)
+    end
+ 
+    autotest.add_mapping %r%^test/fixtures/(.*)s.yml% do |_, m|
+      any_matching_tests(m[1])
+    end
+ 
+    autotest.add_mapping %r%^test/.+/.*rb$% do |filename, _|
+      filename
+    end
+ 
+    autotest.add_mapping %r%^app/models/(.*)\.rb$% do |_, m|
+      any_matching_tests(m[1])
+    end
+ 
+    autotest.add_mapping %r%^app/helpers/application_helper.rb% do
+      autotest.files_matching %r%^test/.+/helpers/.*_test\.rb$%
+    end
+ 
+    autotest.add_mapping %r%^app/helpers/(.*)_helper.rb% do |_, m|
+      if m[1] == "application" then
+        autotest.files_matching %r%^test/.+/helpers/.*_test\.rb$%
+      else
+        autotest.files_matching %r%^test/.+/helpers/#{m[1]}_helper_test\.rb$%
+      end
+    end
+ 
+    autotest.add_mapping %r%^app/controllers/(.*)\.rb$% do |_, m|
+      if m[1] == "application" then
+        autotest.files_matching %r%^test/.+/controllers/.*_test\.rb$%
+      else
+        autotest.files_matching %r%^test/.+/controllers/#{m[1]}_test\.rb$%
+      end
+    end
+ 
+    autotest.add_mapping %r%^config/routes.rb$% do # FIX:
+      autotest.files_matching %r%^test/controllers/.*_test\.rb$%
+    end
+ 
+    autotest.add_mapping %r%^test/.*test_helper.rb|db/example_data.rb|config/((boot|environment(s/test)?).rb|database.yml)% do
+      all_tests autotest
+    end
+ 
   end
   
 end
-        
