@@ -1,4 +1,6 @@
 # Uses gedcom-ruby parser
+require 'yology/gender'
+
 require 'gedcom'
 require 'ostruct'
 
@@ -26,32 +28,57 @@ class Tree < ActiveRecord::Base
       @relations = []
       @events = []
 
-      @rins = []
-      @mrins = []
+      @rins = {}
+      @mrins = {}
 
-      @unknown_tags = {}
+      @unknown_tags = Hash.new
       before :any do |tag,data|
         tag = tag.join('_')
-        @unkown_tags[tag] ||= 0
-        @unkown_tags[tag] += 1
+        @unknown_tags[tag] ||= 0
+        @unknown_tags[tag] += 1
       end
-        
-      before %w(INDI), :start_indi
-      after %w(INDI), :end_indi
+
+      define_indi_tags
     end
     
-    
-    def start_indi data
-      @curr_indi = { :rin => data }
-      @rins[data] = @curr_indi
-    end
-    
-    def end_indi data
-    end
-    
-    
-  end
+
+    def define_indi_tags
+      before %w(INDI) do |data|
+        @individuals << @curr_indi = OpenStruct.new
+        @curr_indi.rin = data
+        @rins[data] = @curr_indi
+      end
+
+      before %w(INDI NAME) do |data|
+        @curr_indi.name = data
+      end
+
+      before %w(INDI SEX) do |data|
+        @curr_indi.gender = data.to_gender
+      end
+
+      before %w(INDI BIRT) do |data|
+      end
+      before %w(INDI BIRT DATE) do |data|
+      end
+      before %w(INDI BIRT PLAC) do |data|
+      end
+      
+      before %w(INDI DEAT) do |data|
+      end
+      before %w(INDI DEAT DATE) do |data|
+      end
+      before %w(INDI DEAT PLAC) do |data|
+      end
+
+      before %w(INDI FAMS) do |data|
+        @curr_indi.fam_as_spouse = data
+      end
+      
+    end #/define_indi_tags
+  end #/ GedcomImporter
   
-end
+end #/Tree
+
 
 
